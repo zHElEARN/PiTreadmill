@@ -16,45 +16,49 @@ TREADMILL_DATA_UUID = '00002ACD-0000-1000-8000-00805f9b34fb'
 # TreadmillData 类封装了跑步机数据的功能
 class TreadmillData:
     def __init__(self):
-        self.kmph = 0.0
+        self.speed = 0.0
         self.incline = 0.0
         self.grade_deg = 0.0
         self.elevation_gain = 0.0
 
-    def set_params(self, kmph, incline, grade_deg, elevation_gain):
-        self.kmph = kmph
+    def set_params(self, speed, incline, grade_deg, elevation_gain):
+        self.speed = speed
         self.incline = incline
         self.grade_deg = grade_deg
         self.elevation_gain = elevation_gain
 
     def get_params(self):
         return {
-            'kmph': self.kmph,
+            'speed': self.speed,
             'incline': self.incline,
             'grade_deg': self.grade_deg,
             'elevation_gain': self.elevation_gain
         }
 
     def read_data(self):
-        flags = 0x0018
-        inst_speed = int(self.kmph * 100)
-        inst_incline = int(self.incline * 10)
-        inst_grade = int(self.grade_deg * 10)
-        inst_elevation_gain = int(self.elevation_gain * 10)
-
+        # 使用一个字典来存储所有的值及其对应的索引和位移
+        data_points = {
+            'flags': {'value': 0x0018, 'index': 0, 'bytes': 2},
+            'inst_speed': {'value': int(self.speed * 100), 'index': 2, 'bytes': 2},
+            'inst_incline': {'value': int(self.incline * 10), 'index': 4, 'bytes': 2},
+            'inst_grade': {'value': int(self.grade_deg * 10), 'index': 6, 'bytes': 2},
+            'inst_elevation_gain': {'value': int(self.elevation_gain * 10), 'index': 8, 'bytes': 2},
+        }
+        
+        # 初始化字节数组
         treadmill_data = bytearray(34)
-        treadmill_data[0] = flags & 0xFF
-        treadmill_data[1] = (flags >> 8) & 0xFF
-        treadmill_data[2] = inst_speed & 0xFF
-        treadmill_data[3] = (inst_speed >> 8) & 0xFF
-        treadmill_data[4] = inst_incline & 0xFF
-        treadmill_data[5] = (inst_incline >> 8) & 0xFF
-        treadmill_data[6] = inst_grade & 0xFF
-        treadmill_data[7] = (inst_grade >> 8) & 0xFF
-        treadmill_data[8] = inst_elevation_gain & 0xFF
-        treadmill_data[9] = (inst_elevation_gain >> 8) & 0xFF
-
+        
+        # 遍历字典，填充字节数组
+        for key, info in data_points.items():
+            value = info['value']
+            index = info['index']
+            bytes_num = info['bytes']
+            
+            for i in range(bytes_num):
+                treadmill_data[index + i] = (value >> (8 * i)) & 0xFF
+        
         return treadmill_data
+
     
     def notify_callback(self, notifying, characteristic):
         """当中央设备订阅或取消订阅通知时调用"""
@@ -83,13 +87,13 @@ def get_treadmill():
 
 @app.route('/set', methods=['GET'])
 def set_treadmill():
-    kmph = request.args.get('kmph', type=float)
+    speed = request.args.get('speed', type=float)
     incline = request.args.get('incline', type=float)
     grade_deg = request.args.get('grade_deg', type=float)
     elevation_gain = request.args.get('elevation_gain', type=float)
     
-    if kmph is not None:
-        treadmill_data.kmph = kmph
+    if speed is not None:
+        treadmill_data.speed = speed
     if incline is not None:
         treadmill_data.incline = incline
     if grade_deg is not None:
