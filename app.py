@@ -2,12 +2,13 @@
 
 # 导入必要的库
 import asyncio
+import os
 import threading
 from bluezero import adapter
 from bluezero import peripheral
 from bluezero import async_tools
 import struct
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 
 # 定义蓝牙服务和特征的UUID
 FTMS_SRV_UUID = '00001826-0000-1000-8000-00805f9b34fb'
@@ -81,6 +82,10 @@ treadmill_data = TreadmillData()
 # Flask 应用
 app = Flask(__name__)
 
+@app.route('/control/<path:filename>')
+def control(filename):
+    return send_from_directory(os.path.join(app.root_path, 'web'), filename)
+
 @app.route('/get', methods=['GET'])
 def get_treadmill():
     return jsonify(treadmill_data.get_params())
@@ -105,7 +110,7 @@ def set_treadmill():
 
 
 def run_flask_app():
-    app.run(debug=False, host='0.0.0.0', port=5000, use_reloader=False)
+    app.run(debug=True, host='0.0.0.0', port=5000, use_reloader=False)
 
 # 蓝牙事件循环
 def run_ble():

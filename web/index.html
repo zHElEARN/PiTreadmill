@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control Panel</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: #f7f7f7;
+  }
+  .data-container {
+    margin-bottom: 10px;
+  }
+  .data-label {
+    margin-right: 10px;
+  }
+  .data-value {
+    font-weight: bold;
+  }
+  button {
+    margin-right: 5px;
+  }
+</style>
+</head>
+<body>
+<div class="data-container">
+  <span class="data-label">Speed:</span>
+  <span id="speed" class="data-value">0.0</span>
+  <button onclick="updateValue('speed', 'up')">Up</button>
+  <button onclick="updateValue('speed', 'down')">Down</button>
+</div>
+<div class="data-container">
+  <span class="data-label">Incline:</span>
+  <span id="incline" class="data-value">0.0</span>
+  <button onclick="updateValue('incline', 'up')">Up</button>
+  <button onclick="updateValue('incline', 'down')">Down</button>
+</div>
+<div class="data-container">
+  <span class="data-label">Grade (°):</span>
+  <span id="grade_deg" class="data-value">0.0</span>
+  <button onclick="updateValue('grade_deg', 'up')">Up</button>
+  <button onclick="updateValue('grade_deg', 'down')">Down</button>
+</div>
+<div class="data-container">
+  <span class="data-label">Elevation Gain:</span>
+  <span id="elevation_gain" class="data-value">0.0</span>
+  <button onclick="updateValue('elevation_gain', 'up')">Up</button>
+  <button onclick="updateValue('elevation_gain', 'down')">Down</button>
+</div>
+
+<script>
+const apiUrl = 'http://192.168.3.13:5000';
+
+function fetchData() {
+  fetch(`${apiUrl}/get`)
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('speed').textContent = data.speed.toFixed(1);
+      document.getElementById('incline').textContent = data.incline.toFixed(1);
+      document.getElementById('grade_deg').textContent = data.grade_deg.toFixed(1);
+      document.getElementById('elevation_gain').textContent = data.elevation_gain.toFixed(1);
+    })
+    .catch(error => console.error('Error fetching data:', error));
+}
+
+function updateValue(type, operation) {
+  // 获取当前所有的值
+  let speedValue = parseFloat(document.getElementById('speed').textContent);
+  let inclineValue = parseFloat(document.getElementById('incline').textContent);
+  let gradeDegValue = parseFloat(document.getElementById('grade_deg').textContent);
+  let elevationGainValue = parseFloat(document.getElementById('elevation_gain').textContent);
+
+  // 根据操作更新对应的值，并四舍五入到一位小数
+  if (type === 'speed') {
+    speedValue = operation === 'up' ? (speedValue + 0.1) : (speedValue - 0.1);
+    speedValue = parseFloat(speedValue.toFixed(1));
+  } else if (type === 'incline') {
+    inclineValue = operation === 'up' ? (inclineValue + 0.1) : (inclineValue - 0.1);
+    inclineValue = parseFloat(inclineValue.toFixed(1));
+  } else if (type === 'grade_deg') {
+    gradeDegValue = operation === 'up' ? (gradeDegValue + 0.1) : (gradeDegValue - 0.1);
+    gradeDegValue = parseFloat(gradeDegValue.toFixed(1));
+  } else if (type === 'elevation_gain') {
+    elevationGainValue = operation === 'up' ? (elevationGainValue + 0.1) : (elevationGainValue - 0.1);
+    elevationGainValue = parseFloat(elevationGainValue.toFixed(1));
+  }
+
+  // 发送更新请求
+  fetch(`${apiUrl}/set?speed=${speedValue}&incline=${inclineValue}&grade_deg=${gradeDegValue}&elevation_gain=${elevationGainValue}`)
+    .then(response => response.json())
+    .then(data => {
+      // 更新页面上的值
+      document.getElementById('speed').textContent = speedValue.toFixed(1);
+      document.getElementById('incline').textContent = inclineValue.toFixed(1);
+      document.getElementById('grade_deg').textContent = gradeDegValue.toFixed(1);
+      document.getElementById('elevation_gain').textContent = elevationGainValue.toFixed(1);
+    })
+    .catch(error => console.error('Error updating value:', error));
+}
+
+
+// Fetch data every second
+setInterval(fetchData, 1000);
+
+// Initial fetch
+fetchData();
+</script>
+</body>
+</html>
