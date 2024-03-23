@@ -98,13 +98,13 @@ def set_treadmill():
     elevation_gain = request.args.get('elevation_gain', type=float)
     
     if speed is not None:
-        treadmill_data.speed = speed
+        treadmill_data.speed = round(speed, 1)
     if incline is not None:
-        treadmill_data.incline = incline
+        treadmill_data.incline = round(incline, 1)
     if grade_deg is not None:
-        treadmill_data.grade_deg = grade_deg
+        treadmill_data.grade_deg = round(grade_deg, 1)
     if elevation_gain is not None:
-        treadmill_data.elevation_gain = elevation_gain
+        treadmill_data.elevation_gain = round(elevation_gain, 1)
     
     return jsonify(success=True)
 
