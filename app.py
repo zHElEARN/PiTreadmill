@@ -82,15 +82,17 @@ treadmill_data = TreadmillData()
 # Flask 应用
 app = Flask(__name__)
 
+@app.route('/control/')
 @app.route('/control/<path:filename>')
-def control(filename):
+def control(filename='index.html'):
     return send_from_directory(os.path.join(app.root_path, 'web'), filename)
 
-@app.route('/get', methods=['GET'])
+
+@app.route('/api/get', methods=['GET'])
 def get_treadmill():
     return jsonify(treadmill_data.get_params())
 
-@app.route('/set', methods=['GET'])
+@app.route('/api/set', methods=['GET'])
 def set_treadmill():
     speed = request.args.get('speed', type=float)
     incline = request.args.get('incline', type=float)
