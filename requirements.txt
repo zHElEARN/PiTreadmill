@@ -1,0 +1,2 @@
+bluezero==0.8.0
+Flask==3.0.2
